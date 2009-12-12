@@ -44,3 +44,34 @@ class NoteDictTest(unittest.TestCase):
         note['c'] = 'd'
         note.update({'e': 'f', 'g': 'h'})
         self.assertEqual(len(note), 4)
+
+class NoteChildrenTest(unittest.TestCase):
+    def test_append_children(self):
+        note = model.Note()
+        self.assertEqual(list(note.children()), [])
+
+        note2 = model.Note()
+        note.append_child(note2)
+        self.assertEqual(list(note.children()), [note2])
+
+        note3 = model.Note()
+        note.append_child(note3)
+        self.assertEqual(list(note.children()), [note2, note3])
+
+        note4 = model.Note()
+        note.append_child(note4)
+        self.assertEqual(list(note.children()), [note2, note3, note4])
+
+    def test_insert_before(self):
+        note = model.Note()
+        note2 = model.Note()
+        note.insert_child_before(note2, None)
+        self.assertEqual(list(note.children()), [note2])
+
+        note3 = model.Note()
+        note.insert_child_before(note3, None)
+        self.assertEqual(list(note.children()), [note2, note3])
+
+        note4 = model.Note()
+        note.insert_child_before(note4, note3)
+        self.assertEqual(list(note.children()), [note2, note4, note3])
