@@ -76,6 +76,11 @@ class Note(collections.MutableMapping):
     def lookup(self, path):
         if path == '':
             return self
+        elif path.startswith('/'):
+            seek = self
+            while seek.parent is not None:
+                seek = seek.parent
+            return seek.lookup(path[1:])
 
         if '/' not in path:
             path = path + '/'
