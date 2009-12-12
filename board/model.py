@@ -57,3 +57,17 @@ class Note(collections.MutableMapping):
 
     def children(self):
         return iter(self._children)
+
+    def lookup(self, path):
+        if path == '':
+            return self
+
+        if '/' not in path:
+            path = path + '/'
+        next_id, path_remainder = path.split('/', 1)
+
+        for child in self.children():
+            if child.get('id', None) == next_id:
+                return child.lookup(path_remainder)
+        else:
+            return None
