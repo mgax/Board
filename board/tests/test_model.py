@@ -9,12 +9,14 @@ class NoteDictTest(unittest.TestCase):
         note['a'] = 'b'
         self.assertEqual(dict(note), {'a': 'b'})
         self.assertRaises(ValueError, note.__setitem__, 'c', 13)
+        self.assertRaises(ValueError, note.__setitem__, 13, 'c')
 
     def test_update(self):
         note = model.Note()
         note.update({'a': 'b', 'c': 'd'})
         self.assertEqual(dict(note), {'a': 'b', 'c': 'd'})
         self.assertRaises(ValueError, note.update, {'c': 13})
+        self.assertRaises(ValueError, note.update, {13: 'c'})
 
     def test_get(self):
         note = model.Note()

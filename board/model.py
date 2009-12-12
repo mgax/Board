@@ -7,14 +7,22 @@ class Note(collections.MutableMapping):
     getting a missing value returns None.
     """
     
-    def __init__(self):
-        self._properties = {}
-        self._children = []
+    def __init__(self, properties=None, children=None):
+        if properties is None:
+            properties = self._properties_factory()
+        if children is None:
+            children = self._children_factory()
+        self._properties = properties
+        self._children = children
+
+    _properties_factory = dict
+    _children_factory = list
 
     def __setitem__(self, key, value):
         if value is None:
             del self[key]
-        elif not isinstance(value, basestring):
+        elif (not isinstance(key, basestring) or
+              not isinstance(value, basestring)):
             raise ValueError
         else:
             self._properties[key] = value
