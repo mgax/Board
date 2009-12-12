@@ -7,16 +7,26 @@ class Note(collections.MutableMapping):
     getting a missing value returns None.
     """
     
-    def __init__(self, properties=None, children=None):
+    def __init__(self, properties=None, children=None, parent=None):
         if properties is None:
             properties = self._properties_factory()
         if children is None:
             children = self._children_factory()
         self._properties = properties
         self._children = children
+        self._parent = parent
 
     _properties_factory = dict
     _children_factory = list
+
+    @property
+    def parent(self):
+        return self._parent
+
+    def _set_parent(self, new_parent):
+        if self._parent is not None:
+            self._parent._remove_child(self)
+        self._parent = new_parent
 
     def __setitem__(self, key, value):
         if value is None:
@@ -47,6 +57,7 @@ class Note(collections.MutableMapping):
 
     def append_child(self, note):
         self._children.append(note)
+        note._set_parent(self)
 
     def insert_child_before(self, note, before):
         if before is None:
@@ -54,6 +65,10 @@ class Note(collections.MutableMapping):
         else:
             i = self._children.index(before) + 1
             self._children.insert(i, note)
+            note._set_parent(self)
+
+    def _remove_child(self, note):
+        self._children.remove(note)
 
     def children(self):
         return iter(self._children)
