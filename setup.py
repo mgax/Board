@@ -9,7 +9,7 @@ setup(
     author_email="public@grep.ro",
     packages=find_packages(),
     setup_requires=['nose>=0.11'],
-    install_requires=['zope.component'],
+    install_requires=['zope.component', 'PyYAML'],
     test_suite="nose.collector",
 #    entry_points={
 #        'console_scripts': [
