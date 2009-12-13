@@ -1,3 +1,5 @@
+import json
+
 from zope import interface
 from zope import component
 
@@ -13,4 +15,5 @@ class NoteWsgiPublisher(object):
 
     def __call__(self, environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
-        return [repr(dict(self.note))]
+        data = {'properties': dict(self.note)}
+        return [json.dumps(data)]
