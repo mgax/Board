@@ -31,3 +31,4 @@ class NoteStorageTest(unittest.TestCase):
         note = model.Note(properties={'x': 'y'}, children=[note2])
         self.assertEqual(dict(note), {'x': 'y'})
         self.assertEqual(list(note.children()), [note2])
+        self.assertTrue(note2.parent is note)

@@ -20,6 +20,8 @@ class Note(collections.MutableMapping):
         self._properties = properties
         self._children = children
         self._parent = parent
+        for child in children:
+            child._set_parent(self)
 
     _properties_factory = dict
     _children_factory = list
