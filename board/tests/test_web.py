@@ -2,6 +2,9 @@ import unittest
 import wsgiref.util
 import wsgiref.validate
 import json
+from StringIO import StringIO
+
+import webob
 
 from board import model
 from board import configure
@@ -73,3 +76,20 @@ class WebTest(unittest.TestCase):
         assert_content('blue', wsgi_get(k1_app, '/k11/'))
         assert_404(wsgi_get(k1_app, '/k1'))
         assert_404(wsgi_get(k1_app, '/k2'))
+
+    def test_change_properties(self):
+        note = model.Note({'a': 'b'})
+
+        req = webob.Request({'wsgi.input': StringIO()}, method='POST')
+        req.POST['action'] = 'set_props'
+        req.POST['data'] = '{"x": "y"}'
+        res = req.get_response(INoteWsgiApp(note))
+        self.assertEqual(res.status, '200 OK')
+        self.assertEqual(dict(note), {'a': 'b', 'x': 'y'})
+
+        req = webob.Request({'wsgi.input': StringIO()}, method='POST')
+        req.POST['action'] = 'set_props'
+        req.POST['data'] = '{"a": null}'
+        res = req.get_response(INoteWsgiApp(note))
+        self.assertEqual(res.status, '200 OK')
+        self.assertEqual(dict(note), {'x': 'y'})

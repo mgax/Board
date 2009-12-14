@@ -11,7 +11,7 @@ class Note(collections.MutableMapping):
     """
 
     interface.implements(INote)
-    
+
     def __init__(self, properties=None, children=None, parent=None):
         if properties is None:
             properties = self._properties_factory()

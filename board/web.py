@@ -3,6 +3,7 @@ import wsgiref.util
 
 from zope import interface
 from zope import component
+import webob
 import webob.exc
 
 from interfaces import INote
@@ -29,6 +30,22 @@ class NoteWsgiPublisher(object):
         return res(environ, start_response)
 
     def handle(self, environ, start_response):
-        start_response('200 OK', [('Content-Type', 'application/json')])
-        data = {'properties': dict(self.note)}
-        return [json.dumps(data)]
+        req = webob.Request(environ)
+
+        if req.method == 'GET':
+            json_data = json.dumps({'properties': dict(self.note)})
+            res = webob.Response(json_data, content_type='application/json')
+
+        elif req.method == 'POST':
+            action = req.POST['action']
+            if action == 'set_props':
+                for key, value in json.loads(req.POST['data']).iteritems():
+                    self.note[key] = value
+            else:
+                raise NotImplementedError
+            res = webob.Response()
+
+        else:
+            raise NotImplementedError
+
+        return res(environ, start_response)
