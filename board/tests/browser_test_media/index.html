@@ -39,6 +39,14 @@ function load_fixture(data, callback) {
         }
     });
 }
+
+function testQueue(queue, callback) {
+    var func = queue.shift();
+    if(func == null)
+        try_catch(callback)();
+    else
+        func(function() { testQueue(queue, callback); });
+}
 </script>
 <script src="test_load_model.js"></script>
 
