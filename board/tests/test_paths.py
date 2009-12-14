@@ -7,12 +7,12 @@ class PathsTest(unittest.TestCase):
         note = model.Note()
         self.assertEqual(note.lookup(''), note)
 
-        kid1 = model.Note({'id': 'kid1', 'a': 'b'})
+        kid1 = model.Note({'-name-': 'kid1', 'a': 'b'})
         note.append_child(kid1)
         self.assertTrue(note.lookup('asdf') is None)
         self.assertTrue(note.lookup('kid1') is kid1)
 
-        kid2 = model.Note({'id': 'kid2', 'c': 'd'})
+        kid2 = model.Note({'-name-': 'kid2', 'c': 'd'})
         kid1.append_child(kid2)
         self.assertTrue(note.lookup('qwer/blah') is None)
         self.assertTrue(note.lookup('kid1/blah') is None)
@@ -21,8 +21,8 @@ class PathsTest(unittest.TestCase):
 
     def test_absolute_paths(self):
         note = model.Note()
-        kid1 = model.Note({'id': 'kid1', 'a': 'b'})
-        kid2 = model.Note({'id': 'kid2', 'c': 'd'})
+        kid1 = model.Note({'-name-': 'kid1', 'a': 'b'})
+        kid2 = model.Note({'-name-': 'kid2', 'c': 'd'})
         note.append_child(kid1)
         kid1.append_child(kid2)
 

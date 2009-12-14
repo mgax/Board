@@ -91,10 +91,10 @@ class Note(collections.MutableMapping):
 
         if '/' not in path:
             path = path + '/'
-        next_id, path_remainder = path.split('/', 1)
+        next_name, path_remainder = path.split('/', 1)
 
         for child in self.children():
-            if child.get('id', None) == next_id:
+            if child.get('-name-', None) == next_name:
                 return child.lookup(path_remainder)
         else:
             return None
