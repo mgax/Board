@@ -2,6 +2,7 @@ import collections
 from zope import interface
 
 from board.interfaces import INote
+from board import delegation
 
 class Note(collections.MutableMapping):
     """
@@ -98,3 +99,6 @@ class Note(collections.MutableMapping):
                 return child.lookup(path_remainder)
         else:
             return None
+
+    def get_delegate(self):
+        return delegation.lookup_delegate(self)
