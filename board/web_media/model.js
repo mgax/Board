@@ -23,6 +23,11 @@ function Note(url, properties) {
     this.url = url;
     this.properties = properties;
 }
+
+Note.prototype.pGet = function(key) {
+    return this.properties[key];
+}
+
 Note.prototype.pSet = function(key, value, callback) {
     var props_data = {}; props_data[key] = value;
     $.ajax({

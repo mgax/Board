@@ -36,7 +36,7 @@ test("Change note", function() {
             ']}, ' +
             '{properties: {"-name-": "b"}, children: []}' +
         ']}';
-    stop(1000);
+    stop();
     load_fixture(fixture, try_catch(function() {
         board.load_note_at_url('/root/a', try_catch(function(evt) {
             assertTrue(evt.success, "Note load event success");
@@ -44,7 +44,7 @@ test("Change note", function() {
             note.pSet('x', 'y', try_catch(function(evt) {
                 assertTrue(evt.success, "Note pSet event success");
                 $.getJSON('/root/a', function(data) {
-                    assertEquals(data.properties['x'], 'y');
+                    assertEqual(data.properties['x'], 'y');
                     start();
                 });
             }));
@@ -55,7 +55,9 @@ test("Change note", function() {
 function load_and_check_note(url, properties, callback) {
     board.load_note_at_url(url, try_catch(function(evt) {
         assertTrue(evt.success, "Note load event success");
-        assertSame(evt.note.properties, properties);
+        var note = evt.note;
+        for(key in properties)
+            assertEqual(note.pGet(key), properties[key]);
         callback();
     }));
 }
