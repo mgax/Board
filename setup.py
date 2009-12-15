@@ -9,11 +9,6 @@ setup(
     author_email="public@grep.ro",
     packages=find_packages(),
     setup_requires=['nose>=0.11'],
-    install_requires=['zope.component', 'PyYAML', 'WebOb'],
-    test_suite="nose.collector",
-#    entry_points={
-#        'console_scripts': [
-#            'bd = board.cmd:main',
-#        ],
-#    },
+    install_requires=['PyYAML', 'WebOb'],
+    test_suite="nose.collector"
 )

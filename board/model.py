@@ -1,7 +1,5 @@
 import collections
-from zope import interface
 
-from board.interfaces import INote
 from board import delegation
 
 class Note(collections.MutableMapping):
@@ -10,8 +8,6 @@ class Note(collections.MutableMapping):
     notable exception: storing None is equivalent to removing an item, and
     getting a missing value returns None.
     """
-
-    interface.implements(INote)
 
     def __init__(self, properties=None, children=None, parent=None):
         if properties is None:

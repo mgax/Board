@@ -6,9 +6,7 @@ from copy import copy
 import webob
 import webob.exc
 
-from board.interfaces import INoteWsgiApp
 from board import yaml_storage
-import board.configure
 
 def get_mimetype(file_path):
     file_type = mimetypes.guess_type(file_path)[0]
@@ -57,7 +55,7 @@ def browser_testing_app(environ, start_response):
     next_path = wsgiref.util.shift_path_info(environ)
 
     if next_path == 'root':
-        res = INoteWsgiApp(root_note)
+        res = root_note.get_delegate().wsgi
 
     elif next_path == 'load_fixture':
         res = load_fixture_app
@@ -77,7 +75,6 @@ def main(host='127.0.0.1', port=8000, app=browser_testing_app, quiet=True):
         pass
     if quiet:
         QuietHandler.log_request = lambda *args, **kwargs: None
-    board.configure.setup_components()
     server = make_server(host, port, app, handler_class=QuietHandler)
     print 'listening at %s:%d' % (host, port)
     try:

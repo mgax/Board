@@ -7,8 +7,6 @@ from StringIO import StringIO
 import webob
 
 from board import model
-from board import configure
-from board.interfaces import INoteWsgiApp
 
 def wsgi_get(app, url):
     app = wsgiref.validate.validator(app)
@@ -23,12 +21,9 @@ def wsgi_get(app, url):
     return response
 
 class WebTest(unittest.TestCase):
-    def setUp(self):
-        configure.setup_components()
-
     def test_adapter(self):
         note = model.Note({'a': 'some test value'})
-        app = INoteWsgiApp(note)
+        app = note.get_delegate().wsgi
         response = wsgi_get(app, '/')
         json_content_type = ('Content-Type', 'application/json')
         self.assertTrue(json_content_type in response['headers'])
@@ -56,7 +51,7 @@ class WebTest(unittest.TestCase):
         def assert_404(response):
             self.assertEqual(response['status'], '404 Not Found')
 
-        root_app = INoteWsgiApp(root)
+        root_app = root.get_delegate().wsgi
         assert_content('white', wsgi_get(root_app, '/'))
         assert_content('red', wsgi_get(root_app, '/k1'))
         assert_content('red', wsgi_get(root_app, '/k1/'))
@@ -70,7 +65,7 @@ class WebTest(unittest.TestCase):
         assert_404(wsgi_get(root_app, '/k1/asdf/'))
         assert_404(wsgi_get(root_app, '/k1/asdf/k11'))
 
-        k1_app = INoteWsgiApp(k1)
+        k1_app = k1.get_delegate().wsgi
         assert_content('red', wsgi_get(k1_app, '/'))
         assert_content('blue', wsgi_get(k1_app, '/k11'))
         assert_content('blue', wsgi_get(k1_app, '/k11/'))
@@ -83,13 +78,13 @@ class WebTest(unittest.TestCase):
         req = webob.Request({'wsgi.input': StringIO()}, method='POST')
         req.POST['action'] = 'set_props'
         req.POST['data'] = '{"x": "y"}'
-        res = req.get_response(INoteWsgiApp(note))
+        res = req.get_response(note.get_delegate().wsgi)
         self.assertEqual(res.status, '200 OK')
         self.assertEqual(dict(note), {'a': 'b', 'x': 'y'})
 
         req = webob.Request({'wsgi.input': StringIO()}, method='POST')
         req.POST['action'] = 'set_props'
         req.POST['data'] = '{"a": null}'
-        res = req.get_response(INoteWsgiApp(note))
+        res = req.get_response(note.get_delegate().wsgi)
         self.assertEqual(res.status, '200 OK')
         self.assertEqual(dict(note), {'x': 'y'})
