@@ -78,6 +78,8 @@ class Note(collections.MutableMapping):
     def remove_child(self, note):
         self._children.remove(note)
         note._parent = None
+        if self._document is not None:
+            self._document._note_removed(note)
 
     def children(self):
         return iter(self._children)
@@ -123,3 +125,13 @@ class Document(object):
         note._id = self._next_id
         self._next_id += 1
         self._index[note._id] = note
+
+    def _note_removed(self, note):
+        assert note._document is self
+
+        for child in note.children():
+            self._note_removed(child)
+
+        del self._index[note._id]
+        del note._document
+        del note._id

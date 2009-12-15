@@ -142,3 +142,28 @@ class DocumentTest(unittest.TestCase):
         note3 = model.Note()
         note3._document = 13
         self.assertRaises(AssertionError, doc.root.append_child, note3)
+
+    def test_remove_note(self):
+        doc = model.Document()
+        note = model.Note()
+        doc.root.append_child(note)
+        self.assertEqual(note._id, 1)
+        self.assertTrue(note._document is doc)
+        self.assertEqual(len(doc), 2)
+
+        doc.root.remove_child(note)
+        self.assertTrue(note._id is None)
+        self.assertTrue(note._document is None)
+        self.assertEqual(len(doc), 1)
+        self.assertEqual(doc._index, {0: doc.root})
+
+        note2 = model.Note()
+        doc.root.append_child(note2)
+        note3 = model.Note()
+        note2.append_child(note3)
+        self.assertEqual(len(doc), 3)
+
+        doc.root.remove_child(note2)
+        self.assertTrue(note3._id is None)
+        self.assertTrue(note3._document is None)
+        self.assertEqual(len(doc), 1)
