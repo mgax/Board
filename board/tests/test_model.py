@@ -78,6 +78,17 @@ class NoteChildrenTest(unittest.TestCase):
         note.insert_child_before(note4, note3)
         self.assertEqual(list(note.children()), [note2, note4, note3])
 
+    def test_remove_note(self):
+        note = model.Note()
+        note2 = model.Note()
+        note.append_child(note2)
+        self.assertEqual(list(note.children()), [note2])
+        self.assertTrue(note2.parent is note)
+
+        note.remove_child(note2)
+        self.assertEqual(list(note.children()), [])
+        self.assertTrue(note2.parent is None)
+
     def test_parent(self):
         note = model.Note()
         self.assertEqual(note.parent, None)

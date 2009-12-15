@@ -20,8 +20,8 @@ class Note(collections.MutableMapping):
         self._properties = properties
         self._children = children
         self._parent = parent
-        for child in children:
-            child._set_parent(self)
+        for note in children:
+            self._link_child(note)
 
     _properties_factory = dict
     _children_factory = list
@@ -30,12 +30,12 @@ class Note(collections.MutableMapping):
     def parent(self):
         return self._parent
 
-    def _set_parent(self, new_parent):
-        if self._parent is not None:
-            self._parent._remove_child(self)
-        self._parent = new_parent
-        if new_parent._document is not None:
-            new_parent._document._note_added(self)
+    def _link_child(self, note):
+        if note._parent is not None:
+            note._parent.remove_child(note)
+        note._parent = self
+        if self._document is not None:
+            self._document._note_added(note)
 
     def __setitem__(self, key, value):
         if value is None:
@@ -65,19 +65,19 @@ class Note(collections.MutableMapping):
         return len(self._properties)
 
     def append_child(self, note):
-        self._children.append(note)
-        note._set_parent(self)
+        self.insert_child_before(note, None)
 
     def insert_child_before(self, note, before):
         if before is None:
-            self.append_child(note)
+            self._children.append(note)
         else:
             i = self._children.index(before) + 1
             self._children.insert(i, note)
-            note._set_parent(self)
+        self._link_child(note)
 
-    def _remove_child(self, note):
+    def remove_child(self, note):
         self._children.remove(note)
+        note._parent = None
 
     def children(self):
         return iter(self._children)
