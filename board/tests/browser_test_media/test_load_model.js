@@ -9,6 +9,24 @@ test("Load note", function() {
         load_and_check_note('/root', {a: 'b'}, start); }));
 });
 
+test("Load note with multiple properties", function() {
+    var fixture = '{properties: {}, children: [' +
+        '{properties: {a: "b", "-name-": "yarr", x: "Y"}, ' +
+        'children: []}]}';
+    expect_properties = {'a': 'b', '-name-': 'yarr', 'x': 'Y'};
+    stop();
+    load_fixture(fixture, try_catch(function() {
+        board.load_note_at_url('/root/yarr', try_catch(function(evt) {
+            assertTrue(evt.success, "Note load event success");
+            var note = evt.note;
+            for(key in expect_properties)
+                assertEqual(note.pGet(key), expect_properties[key]);
+            assertSame(note.pAll(), expect_properties);
+            start();
+        }));
+    }));
+});
+
 test("Load sub note", function() {
     var fixture = '{properties: {}, children:[' +
             '{properties: {"-name-": "a"}, children: [' +

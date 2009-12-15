@@ -28,6 +28,13 @@ Note.prototype.pGet = function(key) {
     return this.properties[key];
 }
 
+Note.prototype.pAll = function() {
+    output = {};
+    for(name in this.properties)
+        output[name] = this.properties[name];
+    return output;
+}
+
 Note.prototype.pSet = function(key, value, callback) {
     var props_data = {}; props_data[key] = value;
     $.ajax({
