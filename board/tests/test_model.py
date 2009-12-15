@@ -104,3 +104,30 @@ class NoteChildrenTest(unittest.TestCase):
         self.assertEqual(note4.parent, note3)
 
         self.assertRaises(AttributeError, setattr, note2, 'parent', note3)
+
+class DocumentTest(unittest.TestCase):
+    def test_new_document(self):
+        doc = model.Document()
+        self.assertEqual(len(doc), 1)
+        root = doc.root
+        self.assertTrue(root._parent is None)
+        self.assertTrue(root._document is doc)
+        self.assertEqual(root._id, 0)
+
+    def test_create_note(self):
+        doc = model.Document()
+        note = model.Note()
+        doc.root.append_child(note)
+        self.assertEqual(len(doc), 2)
+        self.assertTrue(note._parent is doc.root)
+        self.assertTrue(note._document is doc)
+        self.assertEqual(note._id, 1)
+
+        # adding a note with children should not be allowed
+        note2 = model.Note(children=[model.Note()])
+        self.assertRaises(AssertionError, doc.root.append_child, note2)
+
+        # adding a note from another document should not be allowed
+        note3 = model.Note()
+        note3._document = 13
+        self.assertRaises(AssertionError, doc.root.append_child, note3)

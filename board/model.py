@@ -9,6 +9,9 @@ class Note(collections.MutableMapping):
     getting a missing value returns None.
     """
 
+    _document = None
+    _id = None
+
     def __init__(self, properties=None, children=None, parent=None):
         if properties is None:
             properties = self._properties_factory()
@@ -31,6 +34,8 @@ class Note(collections.MutableMapping):
         if self._parent is not None:
             self._parent._remove_child(self)
         self._parent = new_parent
+        if new_parent._document is not None:
+            new_parent._document._note_added(self)
 
     def __setitem__(self, key, value):
         if value is None:
@@ -98,3 +103,23 @@ class Note(collections.MutableMapping):
 
     def get_delegate(self):
         return delegation.lookup_delegate(self)
+
+class Document(object):
+    def __init__(self):
+        root = Note()
+        root._id = 0
+        root._document = self
+        self.root = root
+        self._index = {0: root}
+        self._next_id = 1
+
+    def __len__(self):
+        return len(self._index)
+
+    def _note_added(self, note):
+        assert note._document is None
+        assert list(note.children()) == []
+        note._document = self
+        note._id = self._next_id
+        self._next_id += 1
+        self._index[note._id] = note
