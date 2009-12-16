@@ -10,14 +10,18 @@ class DefaultDelegate(object):
 
     def wsgi(self, environ, start_response):
         next_name = wsgiref.util.shift_path_info(environ)
-        if next_name is None:
+        res = None
+
+        if next_name in (None, ''):
             res = self.wsgi_response(webob.Request(environ))
-        else:
-            child = self.note.lookup(next_name)
-            if child is None:
-                res = webob.exc.HTTPNotFound()
-            else:
+
+        elif next_name.startswith('c:') and len(next_name) > 2:
+            child = self.note.lookup(next_name[2:])
+            if child is not None:
                 res = child.get_delegate().wsgi
+
+        if res is None:
+            res = webob.exc.HTTPNotFound()
 
         return res(environ, start_response)
 

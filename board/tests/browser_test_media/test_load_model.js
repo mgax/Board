@@ -16,7 +16,7 @@ test("Load note with multiple properties", function() {
     expect_properties = {'a': 'b', '-name-': 'yarr', 'x': 'Y'};
     stop();
     load_fixture(fixture, try_catch(function() {
-        board.load_note_at_url('/root/yarr', try_catch(function(evt) {
+        board.load_note_at_url('/root/c:yarr', try_catch(function(evt) {
             assertTrue(evt.success, "Note load event success");
             var note = evt.note;
             for(key in expect_properties)
@@ -38,11 +38,11 @@ test("Load sub note", function() {
     load_fixture(fixture, try_catch(function() {
         var queue = [];
         queue.push(function(callback) {
-            load_and_check_note('/root/a', {"-name-": "a"}, callback); });
+            load_and_check_note('/root/c:a', {"-name-": "a"}, callback); });
         queue.push(function(callback) {
-            load_and_check_note('/root/b', {"-name-": "b"}, callback); });
+            load_and_check_note('/root/c:b', {"-name-": "b"}, callback); });
         queue.push(function(callback) {
-            load_and_check_note('/root/a/c', {"-name-": "c"}, callback); });
+            load_and_check_note('/root/c:a/c:c', {"-name-": "c"}, callback); });
         testQueue(queue, start);
     }));
 });
@@ -56,12 +56,12 @@ test("Change note", function() {
         ']}';
     stop();
     load_fixture(fixture, try_catch(function() {
-        board.load_note_at_url('/root/a', try_catch(function(evt) {
+        board.load_note_at_url('/root/c:a', try_catch(function(evt) {
             assertTrue(evt.success, "Note load event success");
             var note = evt.note;
             note.pSet('x', 'y', try_catch(function(evt) {
                 assertTrue(evt.success, "Note pSet event success");
-                $.getJSON('/root/a', function(data) {
+                $.getJSON('/root/c:a', function(data) {
                     assertEqual(data.properties['x'], 'y');
                     start();
                 });
