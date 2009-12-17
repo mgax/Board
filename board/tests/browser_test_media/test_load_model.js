@@ -21,7 +21,7 @@ test("Load note with multiple properties", function() {
             var note = evt.note;
             for(key in expect_properties)
                 assertEqual(note.pGet(key), expect_properties[key]);
-            assertSame(note.pAll(), expect_properties);
+            assertSame(note.pGetAll(), expect_properties);
             start();
         }));
     }));

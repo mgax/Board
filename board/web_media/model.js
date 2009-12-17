@@ -28,7 +28,7 @@ Note.prototype.pGet = function(key) {
     return this.properties[key];
 }
 
-Note.prototype.pAll = function() {
+Note.prototype.pGetAll = function() {
     output = {};
     for(name in this.properties)
         output[name] = this.properties[name];
