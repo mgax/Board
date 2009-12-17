@@ -1,6 +1,6 @@
 import unittest
 import wsgiref.util
-import wsgiref.validate
+from wsgiref.validate import validator
 import json
 from StringIO import StringIO
 
@@ -8,17 +8,30 @@ import webob
 
 from board import model
 
+def test_request(environ={}, **kwargs):
+    environ = dict(environ)
+    environ.setdefault('SERVER_NAME', 'example.com')
+    environ.setdefault('QUERY_STRING', '')
+    environ.setdefault('SCRIPT_NAME', '')
+    wsgiref.util.setup_testing_defaults(environ)
+    return webob.Request(environ, **kwargs)
+
 def wsgi_get(app, url):
-    app = wsgiref.validate.validator(app)
     environ = {'PATH_INFO': url, 'QUERY_STRING': '', 'SCRIPT_NAME': ''}
     wsgiref.util.setup_testing_defaults(environ)
     response = dict()
     def start_response(status, headers):
         response.update({'status': status, 'headers': headers})
-    ret = app(environ, start_response)
+    ret = validator(app)(environ, start_response)
     response['body'] = ''.join(ret)
     ret.close()
     return response
+
+def check_json_response(response):
+    body = response.body # making sure we finish reading the body iterator
+    assert response.status == '200 OK'
+    assert response.content_type == 'application/json'
+    return json.loads(body)
 
 class WebTest(unittest.TestCase):
     def test_adapter(self):
@@ -78,16 +91,28 @@ class WebTest(unittest.TestCase):
     def test_change_properties(self):
         note = model.Note({'a': 'b'})
 
-        req = webob.Request({'wsgi.input': StringIO()}, method='POST')
+        req = test_request(method='POST')
         req.POST['action'] = 'set_props'
         req.POST['data'] = '{"x": "y"}'
+        # don't use the validator, since webob uses -1 for content length
         res = req.get_response(note.get_delegate().wsgi)
         self.assertEqual(res.status, '200 OK')
         self.assertEqual(dict(note), {'a': 'b', 'x': 'y'})
 
-        req = webob.Request({'wsgi.input': StringIO()}, method='POST')
+        req = test_request(method='POST')
         req.POST['action'] = 'set_props'
         req.POST['data'] = '{"a": null}'
         res = req.get_response(note.get_delegate().wsgi)
         self.assertEqual(res.status, '200 OK')
         self.assertEqual(dict(note), {'x': 'y'})
+
+    def test_list_children(self):
+        k1 = model.Note({'-name-': 'kidone'})
+        k2 = model.Note({'-name-': 'kidtwo'})
+        note = model.Note(children=[k1, k2])
+
+        req = test_request({'PATH_INFO': '/children'})
+        res = req.get_response(validator(note.get_delegate().wsgi))
+        data = check_json_response(res)
+        self.assertEqual(data, {'children': ['http://example.com/c:kidone',
+                                             'http://example.com/c:kidtwo']})
