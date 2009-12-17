@@ -116,3 +116,56 @@ class WebTest(unittest.TestCase):
         data = check_json_response(res)
         self.assertEqual(data, {'children': ['http://example.com/c:kidone',
                                              'http://example.com/c:kidtwo']})
+
+    def test_create_child(self):
+        k2 = model.Note({'-name-': 'kidtwo'})
+        k1 = model.Note({'-name-': 'kidone'}, children=[k2])
+        note = model.Note(children=[k1])
+
+        req = test_request({'PATH_INFO': '/c:kidone/children'}, method='PUT')
+        req.body = json.dumps({'-name-': 'newkid', 'something': 'for nothing'})
+        # don't use the validator, since webob uses -1 for content length
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '303 See Other')
+        self.assertEqual(res.headers['Location'],
+                         'http://example.com/c:kidone/c:newkid')
+
+        req = test_request({'PATH_INFO': '/c:kidone/c:newkid'})
+        res = req.get_response(validator(note.get_delegate().wsgi))
+        data = check_json_response(res)
+        self.assertEqual(data['properties']['something'], 'for nothing')
+
+    def test_create_child_bad_request(self):
+        k2 = model.Note({'-name-': 'kidtwo'})
+        k1 = model.Note({'-name-': 'kidone'}, children=[k2])
+        note = model.Note(children=[k1])
+
+        # non-JSON data
+        req = test_request({'PATH_INFO': '/c:kidone/children'}, method='PUT')
+        req.body = 'non-json data'
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '400 Bad Request')
+
+        # JSON, but not dict
+        req = test_request({'PATH_INFO': '/c:kidone/children'}, method='PUT')
+        req.body = json.dumps('hi there')
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '400 Bad Request')
+
+        # dict, but values not all strings
+        req = test_request({'PATH_INFO': '/c:kidone/children'}, method='PUT')
+        req.body = json.dumps({'a': 'b', 'a-list': ['1', '2']})
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '400 Bad Request')
+
+        # missing -name-
+        req = test_request({'PATH_INFO': '/c:kidone/children'}, method='PUT')
+        req.body = json.dumps({'a': 'b'})
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '400 Bad Request')
+
+        # and finally a good one
+        req = test_request({'PATH_INFO': '/c:kidone/children'}, method='PUT')
+        req.body = json.dumps({'-name-': 'b'})
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '303 See Other')

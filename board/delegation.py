@@ -50,7 +50,39 @@ class DefaultDelegate(object):
             child_urls = [url(child) for child in self.note.children()]
             return JSONResponse({'children': child_urls})
 
+        elif req.method == 'PUT':
+            data = decode_validate_json_properties(req.body)
+
+            if data is None:
+                return webob.exc.HTTPBadRequest('malformed request body')
+
+            if data.get('-name-', '') == '':
+                return webob.exc.HTTPBadRequest('Need value for "-name-"')
+
+            from board import model
+            child = model.Note(data)
+            self.note.append_child(child)
+            child_url = (req.application_url.replace('%3A', ':') +
+                         '/c:' + child['-name-'])
+            return webob.exc.HTTPSeeOther(location=child_url)
+
         raise NotImplementedError
+
+def decode_validate_json_properties(raw_data):
+    try:
+        data = json.loads(raw_data)
+    except ValueError:
+        return None
+
+    if not isinstance(data, dict):
+        return None
+
+    for key, value in data.iteritems():
+        if not (isinstance(key, basestring) and
+                isinstance(value, basestring)):
+            return None
+
+    return data
 
 registry = {None: DefaultDelegate}
 
