@@ -71,7 +71,11 @@ class Note(collections.MutableMapping):
         if before is None:
             self._children.append(note)
         else:
-            i = self._children.index(before) + 1
+            for i, child in enumerate(self._children):
+                if before is child:
+                    break
+            else:
+                assert False, "Child not found in this note"
             self._children.insert(i, note)
         self._link_child(note)
 
