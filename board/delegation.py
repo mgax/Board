@@ -21,6 +21,9 @@ class DefaultDelegate(object):
         elif next_name == 'children':
             res = self.wsgi_response_children(req)
 
+        elif next_name == 'move':
+            res = self.wsgi_response_move(req)
+
         elif next_name.startswith('c:') and len(next_name) > 2:
             req.path_info_pop()
             child = self.note.lookup(next_name[2:])
@@ -67,6 +70,43 @@ class DefaultDelegate(object):
             return webob.exc.HTTPSeeOther(location=child_url)
 
         raise NotImplementedError
+
+    def wsgi_response_move(self, req):
+        # TODO: this is a quick-and-dirty, unsafe implementation; needs rewrite
+        assert req.method == 'POST'
+        new_parent_url = req.POST['new_parent']
+        insert_before_url = req.POST.get('insert_before', None)
+
+        def _do_lookup(url1, url2, note):
+            from urlparse import urlsplit
+            from os import path
+            urlpath = lambda url: urlsplit(url).path.replace('%3A', ':')
+            notepath = lambda url: '/'.join(i[2:] for i in urlpath(url).split('/'))
+            url1_path = notepath(url1)
+            url2_path = notepath(url2)
+            assert '..' not in url1_path.split('/')
+            assert '..' not in url2_path.split('/')
+            for i in path.relpath(url2_path, url1_path).split('/'):
+                if i == '..':
+                    note = note.parent
+                else:
+                    note = note.lookup(i)
+                assert note is not None
+            return note
+
+        new_parent = _do_lookup(req.application_url, new_parent_url, self.note)
+
+        if insert_before_url is not None:
+            insert_before_note = _do_lookup(req.application_url,
+                                            insert_before_url, self.note)
+        else:
+            insert_before_note = None
+
+        new_parent.insert_child_before(self.note, insert_before_note)
+        if new_parent_url.endswith('/'):
+            new_parent_url = new_parent_url[:-1]
+        new_url = new_parent_url + '/c:' + self.note['-name-']
+        return webob.exc.HTTPSeeOther(location=new_url)
 
 def decode_validate_json_properties(raw_data):
     try:

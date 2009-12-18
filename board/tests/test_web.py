@@ -169,3 +169,30 @@ class WebTest(unittest.TestCase):
         req.body = json.dumps({'-name-': 'b'})
         res = req.get_response(note.get_delegate().wsgi)
         self.assertEqual(res.status, '303 See Other')
+
+    def test_move_note(self):
+        kb = model.Note({'-name-': 'kb'})
+        ka1 = model.Note({'-name-': 'ka1'})
+        ka = model.Note({'-name-': 'ka'}, children=[ka1])
+        note = model.Note(children=[ka, kb])
+
+        req = test_request({'PATH_INFO': '/c:ka/c:ka1/move'}, method='POST')
+        req.POST['new_parent'] = 'http://example.com/c:kb'
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '303 See Other')
+        self.assertEqual(res.headers['Location'],
+                         'http://example.com/c:kb/c:ka1')
+        self.assertEqual(list(note.children()), [ka, kb])
+        self.assertEqual(list(ka.children()), [])
+        self.assertEqual(list(kb.children()), [ka1])
+
+        req = test_request({'PATH_INFO': '/c:kb/c:ka1/move'}, method='POST')
+        req.POST['new_parent'] = 'http://example.com/'
+        req.POST['insert_before'] = 'http://example.com/c:kb'
+        res = req.get_response(note.get_delegate().wsgi)
+        self.assertEqual(res.status, '303 See Other')
+        self.assertEqual(res.headers['Location'],
+                         'http://example.com/c:ka1')
+        self.assertEqual(list(note.children()), [ka, ka1, kb])
+        self.assertEqual(list(ka.children()), [])
+        self.assertEqual(list(kb.children()), [])
